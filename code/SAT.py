@@ -1,4 +1,4 @@
-# Basic SAT solver 
+# Sudoku class
 
 
 # read input (DIMACS file)
@@ -29,12 +29,17 @@ class Sudoku:
 
         # make clauses dict 
         for clause in lines[1:]:
-            self.clauses[clause] = False
+            self.clauses[clause.strip("0\n")] = False
+        print(self.clauses)
 
         # make variables dict
         for row in range (1, self.size, 1):
             for column in range (1, self.size, 1):
-                self.variables[row,column] = False
+                for value in range(1, self.size, 1):
+                    self.variables[row,column,value] = False
+
+
+        print(self.variables)
         # fill rest of attributes 
         self.number_clauses = len(self.clauses)
 

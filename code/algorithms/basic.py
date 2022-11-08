@@ -6,5 +6,13 @@ class Basic_SAT:
     """
     Basic SAT solver
     """
-
+    
     def __init__(self, sudoku):
+        self.sudoku = sudoku
+
+    def run(self):
+
+        # 
+
+        pass
+
