@@ -12,7 +12,6 @@ class Sudoku:
         self.number_variables = 0
         self.number_clauses = 0
         self.size =  0
-        self.pure_lits = {}
     
     def input(self):
         """
@@ -34,15 +33,6 @@ class Sudoku:
         
         # make clauses dict 
         self.clauses = [clause.strip(" 0\n").split(" ") for clause in lines[1:]]
-        
-            
-        print(self.clauses)
 
         # fill rest of attributes 
         self.number_clauses = len(self.clauses)
-
-if __name__ == "__main__":
-    sudoku = Sudoku("/home/m_rosa/SAT/SAT_solver/resources/sudoku1.cnf")
-    sudoku.input()
-    dpll_sud = DPLL(sudoku)
-    dpll_sud.run()
