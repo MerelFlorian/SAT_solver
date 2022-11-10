@@ -12,6 +12,7 @@ class Sudoku:
         self.number_variables = 0
         self.number_clauses = 0
         self.size =  0
+        self.set_variables = {}
     
     def input(self):
         """
@@ -31,8 +32,10 @@ class Sudoku:
                 for value in range(1, self.size, 1):
                     self.variables[str(row)+str(column)+str(value)] = None
         
-        # make clauses dict 
+        # make clauses list
         self.clauses = [clause.strip(" 0\n").split(" ") for clause in lines[1:]]
 
         # fill rest of attributes 
         self.number_clauses = len(self.clauses)
+
+        return

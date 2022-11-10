@@ -7,9 +7,14 @@ class DPLL:
     def __init__(self, sudoku):
         self.sudoku = sudoku
         self.count_literals = {}
-        self.tautologies = {}
+        self.removed_clauses = []
 
     def simplify(self):
+        """
+        Simplifies CNF formula using pure literals, tautologies and unit clauses.
+        Removes clause from sudoku clause list when satisfied
+        Sets variable to True or False to satisfy in sudoku dict
+        """
         
         for clause in self.sudoku.clauses:
             # check for empty (sets of) clauses 
@@ -19,28 +24,56 @@ class DPLL:
             # check for empty clause
             if len(clause) == 0:
                 return False   
+
             # unit clause
             elif len(clause) == 1: 
                 self.sudoku.variables[clause[0]] = True
+                self.sudoku.clauses.remove(clause)
+                self.removed_clauses.append(clause)
+                continue
             
-            # count literals + handle tautology
+            # handle tautology
             for literal in clause: 
-                if "-" in literal and literal.replace("-", "") in clause:
-                    self.tautologies[literal] = clause
+                if clause in self.removed_clauses:
+                    continue
+                else: 
+                    if "-" in literal and literal.replace("-", "") in clause:
+                        self.sudoku.clauses.remove(clause)
+                        self.removed_clauses.append(clause)
+                        continue
 
-                if literal not in self.count_literals.keys():
-                    self.count_literals[literal] = [0, clause] 
-                self.count_literals[literal][0] += 1
+                    # count literals
+                    if literal not in self.count_literals.keys():
+                        self.count_literals[literal] = [0, clause]
+                    self.count_literals[literal][0] += 1
 
-        # handle pure clauses 
-        for literal in self.count_literals.keys():
-            
-            if literal.replace("-", "") not in self.count_literals.keys() and "-" in literal:
-                self.sudoku.variables[literal.replace("-", "")] = False
-            elif "-" + literal not in self.count_literals.keys() and "-" not in literal:
-                self.sudoku.variables[literal] = True
-        print(self.pure_literals)
+                    # handle pure clauses
+                    if literal.replace("-", "") not in self.count_literals.keys() and "-" in literal:
+                        self.sudoku.variables[literal.replace("-", "")] = False 
+                        self.sudoku.clauses.remove(clause)
+                        self.removed_clauses.append(clause)
+                        continue
+                    # elif "-" + literal not in self.count_literals.keys() and "-" not in literal:
+                    #     self.sudoku.variables[literal] = True
+                    #     self.sudoku.clauses.remove(clause)
+                    #     self.removed_clauses.append(clause)
+                        # continue
+                    else:
+                        continue
+        return None
+    
+    # def dpll(self):
+    #     """
+    #     Runs dpll algorithm by systematically checking all values for literals, with backtracking.
+    #     """
+    #     for variable in self.sudoku.variables():
 
-  
+
+        
     def run(self):
-        self.simplify()
+        simple = self.simplify()
+
+        # if simple == True or simple == False:
+        #     return simple
+        # else:
+        #     self.dpll()
