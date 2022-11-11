@@ -9,7 +9,7 @@ class Sudoku:
         self.file = file
         self.variables = {}
         self.clauses = []
-        self.number_variables = 0
+        self.count_literals = {}
         self.number_clauses = 0
         self.size =  0
         self.set_variables = {}
@@ -38,4 +38,8 @@ class Sudoku:
         # fill rest of attributes 
         self.number_clauses = len(self.clauses)
 
-        return
+    def count_lits(self, literal):
+        if literal not in self.count_literals.keys():
+            self.count_literals[literal] = 0
+        self.count_literals[literal] += 1
+
