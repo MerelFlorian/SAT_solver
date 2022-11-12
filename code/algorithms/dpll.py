@@ -9,7 +9,6 @@ class DPLL:
     """
     def __init__(self, SAT):
         self.SAT = SAT
-        self.variable
         self.split = False
 
     def count_lits(self, literal, count_literals):
@@ -26,15 +25,15 @@ class DPLL:
         else: 
             return False
     
-    def unit_propagation(self, literal, clause, variables):
+    def unit_propagation(self, clause, variables, set_variables):
         """
         Sets unit clause to appropriate boolean and rm from unset variables
         """
-        if "-" in literal: 
-            self.set_variables[clause[0]]= False
+        if "-" in clause[0]: 
+            set_variables[clause[0]]= False
         else: 
-            self.set_variables[clause[0]]= True
-        self.variables.remove(clause[0])
+            set_variables[clause[0]]= True
+        variables.remove(clause[0])
 
     def empty_set_clauses(self, clauses):
         """ 
@@ -66,20 +65,25 @@ class DPLL:
     def pure_lits(self, literal, count_literals):
         if literal.replace("-", "") not in count_literals.keys() and "-" in literal:
             return False
-        elif "-" + literal not in count_literals.keys() and "-" not in literal:
+        elif "-" + literal not in count_literals.keys() and "-"  in literal:
             return True
         else:
             return None
     
-    def pure_lit_assign(self, literal, boolean, set_variables):
+    def pure_lit_assign(self, literal, clause, boolean, set_variables, variables):
         """
         assigns boolean to pure literal
         """
-        set_variables[clause[0]] = boolean
-        variables.remove(literal)
+        set_variables[literal] = boolean
+        print(assign_literal)
+        
+        if "-" in literal:
+            variables.remove(literal.replace("-", ""))
+        else:
+            variables.remove(literal)
     
     def shorten_clause(clause, literal, clauses):
-        clauses.pop(literal)
+        clauses.remove(literal)
         return
     
     def assign_literal(self, literal, set_variables):
@@ -97,62 +101,66 @@ class DPLL:
             return True
 
 
-def run(self, variables, clauses, set_variables, split, value):
-    """
-    Runs DPLL algorithm by systematically checking all values for literals, with backtracking.
-    """
-    count_lits = {}
+    def run(self, variables, clauses, set_variables, split, value):
+        """
+        Runs DPLL algorithm by systematically checking all values for literals, with backtracking.
+        """
+        count_lits = {}
 
-    # set variable to true or false if not first run
-    if split is not False: 
-        variable = variables.pop()
-        if value == False:
-            variable = "-" + variable
-    else:
-        variable = None
-
-    # unit propagation while unit literal present in KB
-    for clause in clauses:
-        
-        # make new set of clauses with lit value
-        if variable in clause:
-            clauses.pop(clause)
+        # set variable to true or false if not first run
+        if split is not False: 
+            print("JUP")
+            variable = variables.pop()
+            if value == False:
+                variable = "-" + variable
         else:
-            self.shorten_clause(clause)
-        
-        # unit propagation 
-        if self.unit_clause:
-            self.unit_propagation(clause)
-        
-        for literal in clause:
+            variable = None
+
+        # unit propagation while unit literal present in KB
+        for clause in clauses:
             
-            # handle tautology if needed
-            if self.tautology(clause, literal):
-                clauses.remove(clause)
+            # make new set of clauses with lit value
+            if variable in clause:
+                clauses.pop(clause)
+            else:
+                self.shorten_clause(clause, clauses)
+            
+            # unit propagation 
+            if self.unit_clause(clause):
+                self.unit_propagation(clause, variables, set_variables)
+                continue
+            
+            for literal in clause:
+                
+                # handle tautology if needed
+                if self.tautology(clause, literal):
+                    clauses.remove(clause)
 
-            # count all literals
-            self.count_lits(literal, count_lits)
+                # count all literals
+                self.count_lits(literal, count_lits)
+            
+            # pure-literal assignment
+            for literal in clause:
+                self.count_lits(literal, count_lits)
+            for literal in clause:
+                print(clause)
+                if self.pure_lits(literal, count_lits) != None: # if statement werkt niet
+                    print("jup")
+                    self.pure_lit_assign(literal, clause, self.pure_lits(literal, count_lits), set_variables, variables)
+
+        # empty set of clauses 
+        if self.empty_set_clauses():
+            return True
         
-        # pure-literal assignment
-        for literal in clause:
-            self.count_literals(literal, count_lits)
-        for literal in clause:
-            if self.pure_lit(literal) != None:
-                self.pure_lit_assign(literal, self.pure_lit(literal), set_variables)
+        # empty clause
+        for clause in clauses:
+            if self.empty_clause():
+                return False
 
-    # empty set of clauses 
-    if self.empty_set_clauses():
-        return True
-    
-    # empty clause
-    for clause in clauses:
-        if self.empty_clause():
-            return False
-
-    return DPLL.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False) or  DPLL.run(DPLL.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True))
-    
-
+        return DPLL.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False) or  DPLL.run(DPLL.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True))
         
+
+            
 
 
 

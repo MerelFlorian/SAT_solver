@@ -24,13 +24,15 @@ class SAT:
             info = lines[0].split(" ") 
             self.size = int([*info[2]][0])
             self.number_variables = self.size**2
+        
+        print(self.size)
 
         # make variables dict
-        for row in range (1, self.size, 1):
-            for column in range (1, self.size, 1):
-                for value in range(1, self.size, 1):
+        for row in range (1, self.size + 1, 1):
+            for column in range (1, self.size + 1, 1):
+                for value in range(1, self.size + 1, 1):
                     # make (to be) set variables dict
-                    self.variables[str(row)+str(column)+str(value)] = None
+                    self.set_variables[str(row)+str(column)+str(value)] = None
                     # make list of unset variables 
                     self.variables.append(str(row)+str(column)+str(value))
                     
@@ -41,9 +43,5 @@ class SAT:
         # fill rest of attributes 
         self.number_clauses = len(self.clauses)
 
-    
-
-    def remove_lit_clause(self, literal, clause):
-        # remove literal from 
 
 
