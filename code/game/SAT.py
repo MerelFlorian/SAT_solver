@@ -1,16 +1,15 @@
-# Sudoku class
+# SAT class
 
 # read input (DIMACS file)
 
-class Sudoku:
+class SAT:
     def __init__(self, file):
         
         # attributes
         self.file = file
-        self.variables = {}
+        self.variables = []
         self.clauses = []
         self.count_literals = {}
-        self.number_clauses = 0
         self.size =  0
         self.set_variables = {}
     
@@ -30,7 +29,11 @@ class Sudoku:
         for row in range (1, self.size, 1):
             for column in range (1, self.size, 1):
                 for value in range(1, self.size, 1):
+                    # make (to be) set variables dict
                     self.variables[str(row)+str(column)+str(value)] = None
+                    # make list of unset variables 
+                    self.variables.append(str(row)+str(column)+str(value))
+                    
         
         # make clauses list
         self.clauses = [clause.strip(" 0\n").split(" ") for clause in lines[1:]]
@@ -38,8 +41,9 @@ class Sudoku:
         # fill rest of attributes 
         self.number_clauses = len(self.clauses)
 
-    def count_lits(self, literal):
-        if literal not in self.count_literals.keys():
-            self.count_literals[literal] = 0
-        self.count_literals[literal] += 1
+    
+
+    def remove_lit_clause(self, literal, clause):
+        # remove literal from 
+
 
