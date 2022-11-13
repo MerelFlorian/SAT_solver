@@ -114,6 +114,9 @@ class DPLL:
         else:
             variable = None
 
+        print("variable = ", variable)
+        print("split, value = ", split, value)
+
         # unit propagation while unit literal present in KB
         for clause in clauses:
             
@@ -153,7 +156,7 @@ class DPLL:
             if self.empty_clause(clause):
                 return False
 
-        return DPLL.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False) or  DPLL.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True)
+        return self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False) or  self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True)
         
 
             
