@@ -65,7 +65,7 @@ class DPLL:
     def pure_lits(self, literal, count_literals):
         if literal.replace("-", "") not in count_literals.keys() and "-" in literal:
             return False
-        elif "-" + literal not in count_literals.keys() and "-"  in literal:
+        elif "-" + literal not in count_literals.keys() and "-"  not in literal:
             return True
         else:
             return None
@@ -75,7 +75,6 @@ class DPLL:
         assigns boolean to pure literal
         """
         set_variables[literal] = boolean
-        print(assign_literal)
         
         if "-" in literal:
             variables.remove(literal.replace("-", ""))
@@ -109,7 +108,6 @@ class DPLL:
 
         # set variable to true or false if not first run
         if split is not False: 
-            print("JUP")
             variable = variables.pop()
             if value == False:
                 variable = "-" + variable
@@ -142,22 +140,20 @@ class DPLL:
             # pure-literal assignment
             for literal in clause:
                 self.count_lits(literal, count_lits)
-            for literal in clause:
-                print(clause)
-                if self.pure_lits(literal, count_lits) != None: # if statement werkt niet
-                    print("jup")
-                    self.pure_lit_assign(literal, clause, self.pure_lits(literal, count_lits), set_variables, variables)
+        for literal in clause:
+            if self.pure_lits(literal, count_lits) != None: # if statement werkt niet
+                self.pure_lit_assign(literal, clause, self.pure_lits(literal, count_lits), set_variables, variables)
 
         # empty set of clauses 
-        if self.empty_set_clauses():
+        if self.empty_set_clauses(clauses):
             return True
         
         # empty clause
         for clause in clauses:
-            if self.empty_clause():
+            if self.empty_clause(clause):
                 return False
 
-        return DPLL.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False) or  DPLL.run(DPLL.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True))
+        return DPLL.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False) or  DPLL.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True)
         
 
             
