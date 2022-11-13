@@ -25,15 +25,20 @@ class DPLL:
         else: 
             return False
     
-    def unit_propagation(self, clause, variables, set_variables):
+    def unit_propagation(self, unit_clause, variables, set_variables, clauses):
         """
         Sets unit clause to appropriate boolean and rm from unset variables
         """
-        if "-" in clause[0]: 
-            set_variables[clause[0]]= False
+        if "-" in unit_clause[0]: 
+            set_variables[unit_clause[0]]= False
         else: 
-            set_variables[clause[0]]= True
-        variables.remove(clause[0])
+            set_variables[unit_clause[0]]= True
+        variables.remove(unit_clause[0])
+
+        for clause in clauses:
+            if unit_clause[0] in clause:
+                clauses.remove(clause)
+        return
 
     def empty_set_clauses(self, clauses):
         """ 
@@ -55,7 +60,7 @@ class DPLL:
     
     def tautology(self, clause, literal):
         """
-        returns True if clause contains tautology
+        Returns True if clause contains tautology
         """
         if "-" in literal and literal.replace("-", "") in clause:
             return True
@@ -70,19 +75,24 @@ class DPLL:
         else:
             return None
     
-    def pure_lit_assign(self, literal, clause, boolean, set_variables, variables):
+    def pure_lit_assign(self, literal, boolean, set_variables, variables):
         """
-        assigns boolean to pure literal
+        Assigns boolean to pure literal and removes from variables list.
         """
         set_variables[literal] = boolean
-        
-        if "-" in literal:
-            variables.remove(literal.replace("-", ""))
-        else:
-            variables.remove(literal)
+        variables.remove(literal.replace("-", ""))
+
+        return 
     
-    def shorten_clause(clause, literal, clauses):
-        clauses.remove(literal)
+    def pure_lit_in_clause(self, literal, clause):
+        if literal in clause:
+            True
+        else: 
+            False  
+    
+    def shorten_clause(self, literal, clause):
+        if literal in clause:
+            clause.remove(literal)
         return
     
     def assign_literal(self, literal, set_variables):
@@ -103,6 +113,8 @@ class DPLL:
     def run(self, variables, clauses, set_variables, split, value):
         """
         Runs DPLL algorithm by systematically checking all values for literals, with backtracking.
+        Input: variables(list), clauses(list), set_variables(dict), split(Bool), value(Bool)
+        Output: CNF file with set variables.
         """
         count_lits = {}
 
@@ -111,8 +123,12 @@ class DPLL:
             variable = variables.pop()
             if value == False:
                 variable = "-" + variable
+                set_variables[variable] = False
+            else:
+                set_variables[variable] = True
         else:
             variable = None
+            # set_variables[variable] = True
 
         print("variable = ", variable)
         print("split, value = ", split, value)
@@ -120,35 +136,43 @@ class DPLL:
         # unit propagation while unit literal present in KB
         for clause in clauses:
             
-            # make new set of clauses with lit value
-            if variable in clause:
-                clauses.pop(clause)
-            else:
-                self.shorten_clause(clause, clauses)
-            
-            # unit propagation 
-            if self.unit_clause(clause):
-                self.unit_propagation(clause, variables, set_variables)
-                continue
+            if variable != None:
+                # make new set of clauses with lit value
+                if variable.replace("-", "") in clause and "-" not in variable:
+                    clauses.remove(clause)
+                elif variable + "-" in clause and "-" in variable:
+                    clauses.remove(clause)
+                elif variable.replace("-", "") in clause and "-" in variable:
+                    self.shorten_clause(variable, clause)
+                elif variable + "-" in clause and "-" not in variable:
+                    self.shorten_clause(variable, clause)
             
             for literal in clause:
-                
+
                 # handle tautology if needed
                 if self.tautology(clause, literal):
                     clauses.remove(clause)
+                else: 
+                    # literal counter
+                    self.count_lits(literal, count_lits)
+                    
+            # unit propagation 
+            if self.unit_clause(clause):
+                self.unit_propagation(clause, variables, set_variables, clauses)
+                continue
 
-                # count all literals
-                self.count_lits(literal, count_lits)
-            
-            # pure-literal assignment
-            for literal in clause:
-                self.count_lits(literal, count_lits)
-        for literal in clause:
-            if self.pure_lits(literal, count_lits) != None: # if statement werkt niet
-                self.pure_lit_assign(literal, clause, self.pure_lits(literal, count_lits), set_variables, variables)
+        # print(count_lits)
+        # for clause in clauses:    
+        #     for literal in clause:
+        #         if self.pure_lits(literal, count_lits) != None: 
+        #             print("pure lit:", literal)
+        #             self.pure_lit_assign(literal, self.pure_lits(literal, count_lits), set_variables, variables)
 
         # empty set of clauses 
         if self.empty_set_clauses(clauses):
+            print(len(set_variables))
+            print(clauses)
+            print(set_variables)
             return True
         
         # empty clause

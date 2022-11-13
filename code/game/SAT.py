@@ -31,8 +31,8 @@ class SAT:
         for row in range (1, self.size + 1, 1):
             for column in range (1, self.size + 1, 1):
                 for value in range(1, self.size + 1, 1):
-                    # make (to be) set variables dict
-                    self.set_variables[str(row)+str(column)+str(value)] = None
+                    # # make (to be) set variables dict
+                    # self.set_variables[str(row)+str(column)+str(value)] = None
                     # make list of unset variables 
                     self.variables.append(str(row)+str(column)+str(value))
                     
