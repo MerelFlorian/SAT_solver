@@ -25,20 +25,37 @@ class DPLL:
         else: 
             return False
     
-    def unit_propagation(self, unit_clause, variables, set_variables, clauses):
+    def unit_propagation(self, unit_clause, set_variables, clauses):
         """
         Sets unit clause to appropriate boolean and rm from unset variables
         """
-        if "-" in unit_clause[0]: 
-            set_variables[unit_clause[0]]= False
-        else: 
-            set_variables[unit_clause[0]]= True
-        variables.remove(unit_clause[0])
+        # sets variable to True or False
+        if "-" not in unit_clause[0]: 
+            set_variables[unit_clause[0]] = True
 
-        for clause in clauses:
-            if unit_clause[0] in clause:
-                clauses.remove(clause)
-        return
+        # remove  or shorten clause from clauses
+        # shorten alle andere clauses met literal uit unit clause 
+        # controleer voor positief of negatief
+        unit_clause = unit_clause[0]
+        
+        if "-" in unit_clause:
+            opposite = unit_clause.replace("-", "")
+        else:
+            opposite = "-" + unit_clause
+
+        
+        for clause, i in zip(clauses, range(0, len(clauses))):
+            print("clause",clause)
+            print("unit_clause", unit_clause)
+
+            for variable in clause:
+                if opposite == variable:
+                    # shorten clause
+                    new_clause, empty = self.shorten_clause(unit_clause, clause)
+                    clauses[i] = new_clause
+                elif unit_clause == variable:
+                    clauses.remove(clause)
+        return clauses
 
     def empty_set_clauses(self, clauses):
         """ 
@@ -91,11 +108,19 @@ class DPLL:
             False  
     
     def shorten_clause(self, literal, clause):
+        
+        # check if empty clause, return False
         if "-" in literal:
             clause.remove(literal.replace("-", ""))
         else:
             clause.remove("-"+ literal)
-        return clause
+
+        if len(clause) == 0:
+            empty = True
+        else: 
+            empty = False
+
+        return clause, empty
     
     def assign_literal(self, literal, set_variables):
         """
@@ -108,9 +133,29 @@ class DPLL:
         elif set_variables[literal] == True:
             return False
         else:
-            set_variables[literal] = False
             return True
-
+    # def change_clause(self, clause, clauses, variable, i):
+    #     print(clause)
+    #      # make new set of clauses with lit value
+    #     if variable.replace("-", "") in clause and "-" not in variable:
+    #         clauses[i].remove(clause)
+    #         return clauses, True
+    #     elif variable + "-" in clause and "-" in variable:
+    #         print("REMOVED")
+    #         clauses[i].remove(clause)
+    #         return clauses, True
+    #     elif variable + "-" in clause and "-" not in variable:
+    #         # shorten clause
+    #         new_clause, empty = self.shorten_clause(variable, clause)
+    #         clauses[i] = new_clause
+    #         return clauses, False
+    #     elif variable.replace("-", "") in clause and "-" in variable:
+    #         # shorten clause
+    #         new_clause, empty = self.shorten_clause(variable, clause)
+    #         clauses[i] = new_clause
+    #         return clauses, False
+    #     else:
+    #         return clauses, False
 
     def run(self, variables, clauses, set_variables, split, value):
         """
@@ -122,13 +167,13 @@ class DPLL:
         clauses = clauses
         set_variables = set_variables
         variables = variables
+        empty = False
 
         # set variable to true or false if not first run
         if split is not False: 
             variable = variables.pop()
             if value == False:
                 variable = "-" + variable
-                set_variables[variable] = False
             else:
                 set_variables[variable] = True
         else:
@@ -141,32 +186,49 @@ class DPLL:
         # unit propagation while unit literal present in KB
         for clause, i in zip(clauses, range(0, len(clauses))):
             
+            # if variable is chosen
             if variable != None:
                 # make new set of clauses with lit value
                 if variable.replace("-", "") in clause and "-" not in variable:
                     clauses.remove(clause)
+                    continue
                 elif variable + "-" in clause and "-" in variable:
                     clauses.remove(clause)
+                    continue
                 elif variable + "-" in clause and "-" not in variable:
-                    new_clause = self.shorten_clause(variable, clause)
+                    # shorten clause
+                    new_clause, empty = self.shorten_clause(variable, clause)
                     clauses[i] = new_clause
                 elif variable.replace("-", "") in clause and "-" in variable:
-                    new_clause = self.shorten_clause(variable, clause) 
+                    # shorten clause
+                    new_clause, empty = self.shorten_clause(variable, clause)
                     clauses[i] = new_clause
+                
+                # unit propagation
 
-            for literal in clause:
-                # handle tautology if needed
-                if self.tautology(clause, literal):
-                    clauses.remove(clause)
-                else: 
-                    # literal counter
-                    self.count_lits(literal, count_lits)
+                print("clauses:",clauses)
+                if self.unit_clause(clause):
+                    # print(clause)
+                    # print("UNIT")
+                    clauses = self.unit_propagation(clause, set_variables, clauses)
+                    # print("unit_clauses_removed", clauses)
+
+            # check for empty clause
+            if empty == True: 
+                return False
+                
+            
+            # check for empty set of clauses 
+            if len(clauses) == 0:
+                print(set_variables)
+                return True
+            
+            print("variables:", variables)
+        
                     
-            # unit propagation 
-            if self.unit_clause(clause):
-                self.unit_propagation(clause, variables, set_variables, clauses)
-        if variable == "-899":
-            return False
+           
+        # if variable == "-899":
+        #     return False
 
         # print(count_lits)
         # for clause in clauses:    
