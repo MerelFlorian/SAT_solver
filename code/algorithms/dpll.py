@@ -15,6 +15,16 @@ class DPLL:
         if literal not in count_literals.keys():
             count_literals[literal] = 0
         count_literals[literal] += 1
+    def opposite(self, literal):
+        """
+        Returns opposite of literal (111-> -111)
+        """
+        if "-" in literal:
+            opposite = literal.replace("-", "")
+        else:
+            opposite = "-" + literal
+        return opposite
+
 
     def unit_clause(self, clause):
         """
@@ -33,26 +43,27 @@ class DPLL:
         if "-" not in unit_clause[0]: 
             set_variables[unit_clause[0]] = True
 
+
         # remove  or shorten clause from clauses
-        unit_clause = unit_clause[0]
-        
-        if "-" in unit_clause:
-            opposite = unit_clause.replace("-", "")
-        else:
-            opposite = "-" + unit_clause
+        unit_clause= unit_clause[0]
+
+        opposite = self.opposite(unit_clause)
 
         empty = False
-        new_unit_clauses = []
+        new_unit_clauses = [] # lijst kan 2x dezelfde waarde hebben
         for clause, i in zip(clauses, range(0, len(clauses))):
             for variable in clause:
                 if opposite == variable:
                     # shorten clause
                     new_clause, empty, new_unit_clause = self.shorten_clause(unit_clause, clause)
                     clauses[i] = new_clause
-                    new_unit_clauses.append(new_unit_clause)
+                    if new_unit_clause == True:
+                        if new_unit_clause not in new_unit_clauses: 
+                            new_unit_clauses.append(new_clause)
 
                 elif unit_clause == variable:
                     clauses.remove(clause)
+
         return clauses, empty, new_unit_clauses
 
     def empty_set_clauses(self, clauses):
@@ -113,10 +124,13 @@ class DPLL:
         else:
             clause.remove("-"+ literal)
 
+        unit_clause = False
+
         if len(clause) == 0:
             empty = True
         elif len(clause) == 1:
-            unit_clause = clause
+            print("WE FOUND A UNIT CLAUSE")
+            unit_clause = True
             empty = False
         else: 
             empty = False
@@ -170,6 +184,9 @@ class DPLL:
             
             # if variable is chosen
             if variable != None:
+
+                opposite = self.opposite(variable)
+
                 # make new set of clauses with lit value
                 if variable.replace("-", "") in clause and "-" not in variable:
                     clauses.remove(clause)
@@ -188,17 +205,18 @@ class DPLL:
                 
                 # unit propagation
                 if self.unit_clause(clause):
-                    unit_clauses = [clause]
-                    print(unit_clauses)
+                    unit_clauses = clause
                     
                     # keep doing unit propagation till no unit_clauses are left
-                    while len(unit_clauses) != 0:
+                    while len(unit_clauses) != 0: # check of empty wel weer op false komt na voorgaande stappen
                         total_new_unit_clauses = []
                         for unit_clause in unit_clauses:
-                            clauses, empty, new_unit_clauses = self.unit_propagation(clause, set_variables, clauses)
-                            for new_unit_clause in new_unit_clauses:
-                                total_new_unit_clauses.append(new_unit_clause)
+                            clauses, empty, new_unit_clauses = self.unit_propagation(unit_clause, set_variables, clauses)
+                        for new_unit_clause in new_unit_clauses:
+                            total_new_unit_clauses.append(new_unit_clause)
+
                         unit_clauses = total_new_unit_clauses
+                        # eerder checken of er al empty clauses zijn dan kan je uit deze loop
 
             # check for empty clause
             if empty == True: 
@@ -206,7 +224,6 @@ class DPLL:
                 
             # check for empty set of clauses 
             if len(clauses) == 0:
-                print(set_variables)
                 return True
         
                     
