@@ -165,6 +165,8 @@ class DPLL:
             # unit propagation 
             if self.unit_clause(clause):
                 self.unit_propagation(clause, variables, set_variables, clauses)
+        if variable == "-899":
+            return False
 
         # print(count_lits)
         # for clause in clauses:    
@@ -173,19 +175,19 @@ class DPLL:
         #             print("pure lit:", literal)
         #             self.pure_lit_assign(literal, self.pure_lits(literal, count_lits), set_variables, variables)
 
-        # empty set of clauses 
-        if self.empty_set_clauses(clauses):
-            print(len(set_variables))
-            print(clauses)
-            print(set_variables)
-            return True
+        # # empty set of clauses 
+        # if self.empty_set_clauses(clauses):
+        #     print(len(set_variables))
+        #     print(clauses)
+        #     print(set_variables)
+        #     return True
         
-        # empty clause
-        for clause in clauses:
-            if self.empty_clause(clause):
-                print("EMPTY CLAUSE!!!!!!!")
+        # # empty clause
+        # for clause in clauses:
+        #     if self.empty_clause(clause):
+        #         print("EMPTY CLAUSE!!!!!!!")
 
-                return False
+                # return False
         return self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False) or  self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True)
         
 
@@ -203,82 +205,4 @@ class DPLL:
 
             
         
-
-
-
-
-    
-                   
-    # def run(self):
-    #     """
-    #     Runs DPLL algorithm by systematically checking all values for literals, with backtracking.
-    #     """
-    #     # first check for empty set of clauses
-    #     if self.empty_set_clauses():
-    #         return True
-
-    #     # loop through all clauses 
-    #     for clause in self.SAT.clauses:
-            
-    #         # check for empty clause 
-    #         if self.empty_clause(clause):
-    #             return False 
-
-    #         # check unit clause and set it and count lit if True 
-    #         if self.set_unit_clause(clause, self.unit_clause(clause)):
-    #             self.SAT.count_lits(literal)
-    #             continue
-            
-    #         for literal in clause:
-    #             # check for tautology and count literal if clause is not removed
-    #             if self.tautology(clause, literal):
-    #                 self.SAT.clauses.remove(clause)
-    #             else: 
-    #                 self.SAT.count_lits(literal)
-        
-    #     # check for pure clause
-    #     for clause in self.SAT.clauses:
-    #         for literal in clause:
-                
-    #             if self.pure_lits(literal):
-    #                 self.SAT.set_variables[literal] = True
-    #                 self.SAT.clauses.remove(clause)
-    #             elif self.pure_lits(literal) == False:
-    #                 self.SAT.set_variables[literal] = False
-    #                 self.SAT.clauses.remove(clause)
-    #             else: 
-    #                 continue
-        
-    #     # chronological backtracking
-
-    #     # deep copy
-
-    #     # assign value
-
-    #     # change clauses 
-
-    #     # remove sat clauses
-
-    #     # check for unit clause -> hard choice 
-
-    #     # 
-
-
-
-
-
-
-                
-
-
-        
-    
-
-            
-            
-
-        
-
-        
-
 
