@@ -34,8 +34,6 @@ class DPLL:
             set_variables[unit_clause[0]] = True
 
         # remove  or shorten clause from clauses
-        # shorten alle andere clauses met literal uit unit clause 
-        # controleer voor positief of negatief
         unit_clause = unit_clause[0]
         
         if "-" in unit_clause:
@@ -43,19 +41,19 @@ class DPLL:
         else:
             opposite = "-" + unit_clause
 
-        
+        empty = False
+        new_unit_clauses = []
         for clause, i in zip(clauses, range(0, len(clauses))):
-            print("clause",clause)
-            print("unit_clause", unit_clause)
-
             for variable in clause:
                 if opposite == variable:
                     # shorten clause
-                    new_clause, empty = self.shorten_clause(unit_clause, clause)
+                    new_clause, empty, new_unit_clause = self.shorten_clause(unit_clause, clause)
                     clauses[i] = new_clause
+                    new_unit_clauses.append(new_unit_clause)
+
                 elif unit_clause == variable:
                     clauses.remove(clause)
-        return clauses
+        return clauses, empty, new_unit_clauses
 
     def empty_set_clauses(self, clauses):
         """ 
@@ -117,10 +115,13 @@ class DPLL:
 
         if len(clause) == 0:
             empty = True
+        elif len(clause) == 1:
+            unit_clause = clause
+            empty = False
         else: 
             empty = False
 
-        return clause, empty
+        return clause, empty, unit_clause
     
     def assign_literal(self, literal, set_variables):
         """
@@ -134,30 +135,9 @@ class DPLL:
             return False
         else:
             return True
-    # def change_clause(self, clause, clauses, variable, i):
-    #     print(clause)
-    #      # make new set of clauses with lit value
-    #     if variable.replace("-", "") in clause and "-" not in variable:
-    #         clauses[i].remove(clause)
-    #         return clauses, True
-    #     elif variable + "-" in clause and "-" in variable:
-    #         print("REMOVED")
-    #         clauses[i].remove(clause)
-    #         return clauses, True
-    #     elif variable + "-" in clause and "-" not in variable:
-    #         # shorten clause
-    #         new_clause, empty = self.shorten_clause(variable, clause)
-    #         clauses[i] = new_clause
-    #         return clauses, False
-    #     elif variable.replace("-", "") in clause and "-" in variable:
-    #         # shorten clause
-    #         new_clause, empty = self.shorten_clause(variable, clause)
-    #         clauses[i] = new_clause
-    #         return clauses, False
-    #     else:
-    #         return clauses, False
+    
 
-    def run(self, variables, clauses, set_variables, split, value):
+    def run(self, variables, clauses, set_variables, split, value, run):
         """
         Runs DPLL algorithm by systematically checking all values for literals, with backtracking.
         Input: variables(list), clauses(list), set_variables(dict), split(Bool), value(Bool)
@@ -182,6 +162,8 @@ class DPLL:
 
         print("variable = ", variable)
         print("split, value = ", split, value)
+        if run % 2 == 0:
+            print("WE DID: ", run, "RUNS")
 
         # unit propagation while unit literal present in KB
         for clause, i in zip(clauses, range(0, len(clauses))):
@@ -201,29 +183,31 @@ class DPLL:
                     clauses[i] = new_clause
                 elif variable.replace("-", "") in clause and "-" in variable:
                     # shorten clause
-                    new_clause, empty = self.shorten_clause(variable, clause)
+                    new_clause, empty, unit_clause = self.shorten_clause(variable, clause)
                     clauses[i] = new_clause
                 
                 # unit propagation
-
-                print("clauses:",clauses)
                 if self.unit_clause(clause):
-                    # print(clause)
-                    # print("UNIT")
-                    clauses = self.unit_propagation(clause, set_variables, clauses)
-                    # print("unit_clauses_removed", clauses)
+                    unit_clauses = [clause]
+                    print(unit_clauses)
+                    
+                    # keep doing unit propagation till no unit_clauses are left
+                    while len(unit_clauses) != 0:
+                        total_new_unit_clauses = []
+                        for unit_clause in unit_clauses:
+                            clauses, empty, new_unit_clauses = self.unit_propagation(clause, set_variables, clauses)
+                            for new_unit_clause in new_unit_clauses:
+                                total_new_unit_clauses.append(new_unit_clause)
+                        unit_clauses = total_new_unit_clauses
 
             # check for empty clause
             if empty == True: 
                 return False
                 
-            
             # check for empty set of clauses 
             if len(clauses) == 0:
                 print(set_variables)
                 return True
-            
-            print("variables:", variables)
         
                     
            
@@ -237,20 +221,8 @@ class DPLL:
         #             print("pure lit:", literal)
         #             self.pure_lit_assign(literal, self.pure_lits(literal, count_lits), set_variables, variables)
 
-        # # empty set of clauses 
-        # if self.empty_set_clauses(clauses):
-        #     print(len(set_variables))
-        #     print(clauses)
-        #     print(set_variables)
-        #     return True
-        
-        # # empty clause
-        # for clause in clauses:
-        #     if self.empty_clause(clause):
-        #         print("EMPTY CLAUSE!!!!!!!")
-
-                # return False
-        return self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False) or  self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True)
+        run += 1
+        return self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False, run) or  self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True, run)
         
 
             
