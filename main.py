@@ -6,4 +6,4 @@ if __name__ == "__main__":
     sat = SAT("/Users/merelflorian/Documents/AI/KR/SAT_solver/resources/sudoku1.cnf")
     sat.input()
     dpll_sud = DPLL(sat)
-    dpll_sud.run(sat.variables, sat.clauses, sat.set_variables, False, None)
+    print(dpll_sud.run(sat.variables, sat.clauses, sat.set_variables, False, None))

@@ -91,9 +91,11 @@ class DPLL:
             False  
     
     def shorten_clause(self, literal, clause):
-        if literal in clause:
-            clause.remove(literal)
-        return
+        if "-" in literal:
+            clause.remove(literal.replace("-", ""))
+        else:
+            clause.remove("-"+ literal)
+        return clause
     
     def assign_literal(self, literal, set_variables):
         """
@@ -117,6 +119,9 @@ class DPLL:
         Output: CNF file with set variables.
         """
         count_lits = {}
+        clauses = clauses
+        set_variables = set_variables
+        variables = variables
 
         # set variable to true or false if not first run
         if split is not False: 
@@ -134,7 +139,7 @@ class DPLL:
         print("split, value = ", split, value)
 
         # unit propagation while unit literal present in KB
-        for clause in clauses:
+        for clause, i in zip(clauses, range(0, len(clauses))):
             
             if variable != None:
                 # make new set of clauses with lit value
@@ -142,13 +147,14 @@ class DPLL:
                     clauses.remove(clause)
                 elif variable + "-" in clause and "-" in variable:
                     clauses.remove(clause)
-                elif variable.replace("-", "") in clause and "-" in variable:
-                    self.shorten_clause(variable, clause)
                 elif variable + "-" in clause and "-" not in variable:
-                    self.shorten_clause(variable, clause)
-            
-            for literal in clause:
+                    new_clause = self.shorten_clause(variable, clause)
+                    clauses[i] = new_clause
+                elif variable.replace("-", "") in clause and "-" in variable:
+                    new_clause = self.shorten_clause(variable, clause) 
+                    clauses[i] = new_clause
 
+            for literal in clause:
                 # handle tautology if needed
                 if self.tautology(clause, literal):
                     clauses.remove(clause)
@@ -159,7 +165,6 @@ class DPLL:
             # unit propagation 
             if self.unit_clause(clause):
                 self.unit_propagation(clause, variables, set_variables, clauses)
-                continue
 
         # print(count_lits)
         # for clause in clauses:    
@@ -178,8 +183,9 @@ class DPLL:
         # empty clause
         for clause in clauses:
             if self.empty_clause(clause):
-                return False
+                print("EMPTY CLAUSE!!!!!!!")
 
+                return False
         return self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False) or  self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True)
         
 
