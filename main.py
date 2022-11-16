@@ -1,6 +1,6 @@
 # imports
-from code.algorithms.dpll import DPLL
-from code.game.SAT import SAT
+from src.algorithms.dpll import DPLL
+from src.game.SAT import SAT
 
 if __name__ == "__main__":
     sat = SAT("/home/m_rosa/SAT/SAT_solver/resources/sudoku1.cnf")

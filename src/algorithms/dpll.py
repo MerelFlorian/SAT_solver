@@ -15,6 +15,7 @@ class DPLL:
         if literal not in count_literals.keys():
             count_literals[literal] = 0
         count_literals[literal] += 1
+    
     def opposite(self, literal):
         """
         Returns opposite of literal (111-> -111)
@@ -43,28 +44,35 @@ class DPLL:
         if "-" not in unit_clause[0]: 
             set_variables[unit_clause[0]] = True
 
-
         # remove  or shorten clause from clauses
-        unit_clause= unit_clause[0]
-
-        opposite = self.opposite(unit_clause)
+        opposite = self.opposite(unit_clause[0])
 
         empty = False
         new_unit_clauses = [] # lijst kan 2x dezelfde waarde hebben
+        new_clauses = copy.deepcopy(clauses)
+        removed_clauses = 0
+        
         for clause, i in zip(clauses, range(0, len(clauses))):
+            
             for variable in clause:
-                if opposite == variable:
+                print("variable, unit_clause", variable, unit_clause[0])
+
+                if opposite == variable:  # somehow it does not do all clauses (does not find all matches)
                     # shorten clause
-                    new_clause, empty, new_unit_clause = self.shorten_clause(unit_clause, clause)
-                    clauses[i] = new_clause
-                    if new_unit_clause == True:
-                        if new_unit_clause not in new_unit_clauses: 
+                    new_clause, empty, new = self.shorten_clause(unit_clause[0], clause) # shortening works, does empty work?
+                    print(new_clauses)
+                    new_clauses[i - removed_clauses] = new_clause
+
+                    if new == True:
+                        if new_clause not in new_unit_clauses: 
                             new_unit_clauses.append(new_clause)
+                    
+                elif unit_clause[0] == variable:
+                    removed_clauses += 1
+                    print("matching same", unit_clause[0])
+                    new_clauses.remove(clause)
 
-                elif unit_clause == variable:
-                    clauses.remove(clause)
-
-        return clauses, empty, new_unit_clauses
+        return new_clauses, empty, new_unit_clauses
 
     def empty_set_clauses(self, clauses):
         """ 
@@ -117,38 +125,34 @@ class DPLL:
             False  
     
     def shorten_clause(self, literal, clause):
-        
-        # check if empty clause, return False
-        if "-" in literal:
-            clause.remove(literal.replace("-", ""))
-        else:
-            clause.remove("-"+ literal)
-
+        new_clause = copy.deepcopy(clause)
         unit_clause = False
-
-        if len(clause) == 0:
-            empty = True
-        elif len(clause) == 1:
-            print("WE FOUND A UNIT CLAUSE")
-            unit_clause = True
-            empty = False
-        else: 
-            empty = False
-
-        return clause, empty, unit_clause
-    
-    def assign_literal(self, literal, set_variables):
-        """
-        Assigns value to literal. If false: tries True. 
-        If True, returns false. Else (None in our case) sets variable to False.
-        """
-        if set_variables[literal] == False:
-            set_variables[literal] = True
-            return True
-        elif set_variables[literal] == True:
-            return False
+        empty = False
+        
+        if "-" in literal:
+            new_clause.remove(literal.replace("-", ""))
         else:
-            return True
+            new_clause.remove("-"+ literal)
+
+        if len(new_clause) == 0:
+            empty = True
+        elif len(new_clause) == 1:
+            unit_clause = True
+
+        return new_clause, empty, unit_clause
+    
+    # def assign_literal(self, literal, set_variables):
+    #     """
+    #     Assigns value to literal. If false: tries True. 
+    #     If True, returns false. Else (None in our case) sets variable to False.
+    #     """
+    #     if set_variables[literal] == False:
+    #         set_variables[literal] = True
+    #         return True
+    #     elif set_variables[literal] == True:
+    #         return False
+    #     else:
+    #         return True
     
 
     def run(self, variables, clauses, set_variables, split, value, run):
@@ -162,6 +166,8 @@ class DPLL:
         set_variables = set_variables
         variables = variables
         empty = False
+        unit_clauses = []
+        new_clauses = copy.deepcopy(clauses)
 
         # set variable to true or false if not first run
         if split is not False: 
@@ -172,20 +178,15 @@ class DPLL:
                 set_variables[variable] = True
         else:
             variable = None
-            # set_variables[variable] = True
 
         print("variable = ", variable)
         print("split, value = ", split, value)
-        if run % 2 == 0:
-            print("WE DID: ", run, "RUNS")
 
         # unit propagation while unit literal present in KB
         for clause, i in zip(clauses, range(0, len(clauses))):
             
             # if variable is chosen
             if variable != None:
-
-                opposite = self.opposite(variable)
 
                 # make new set of clauses with lit value
                 if variable.replace("-", "") in clause and "-" not in variable:
@@ -196,35 +197,55 @@ class DPLL:
                     continue
                 elif variable + "-" in clause and "-" not in variable:
                     # shorten clause
-                    new_clause, empty = self.shorten_clause(variable, clause)
-                    clauses[i] = new_clause
-                elif variable.replace("-", "") in clause and "-" in variable:
-                    # shorten clause
                     new_clause, empty, unit_clause = self.shorten_clause(variable, clause)
                     clauses[i] = new_clause
+                    if unit_clause == True and clause not in unit_clauses:
+                        unit_clauses.append(clause)
+                elif variable.replace("-", "") in clause and "-" in variable:
+                    # shorten clause
+                    new_clause, empty, unit_clause = self.shorten_clause(variable, clause) 
+                    clauses[i] = new_clause
+                    if unit_clause == True and clause not in unit_clauses:
+                        unit_clauses.append(clause)
+                if empty == True:
+                    return False
                 
-                # unit propagation
-                if self.unit_clause(clause):
-                    unit_clauses = clause
-                    
-                    # keep doing unit propagation till no unit_clauses are left
-                    while len(unit_clauses) != 0: # check of empty wel weer op false komt na voorgaande stappen
-                        total_new_unit_clauses = []
-                        for unit_clause in unit_clauses:
-                            clauses, empty, new_unit_clauses = self.unit_propagation(unit_clause, set_variables, clauses)
-                        for new_unit_clause in new_unit_clauses:
-                            total_new_unit_clauses.append(new_unit_clause)
+            # add unit clauses to list to use later in unit propagation
+            if self.unit_clause(clause) and clause not in unit_clauses:
+                unit_clauses.append(clause)
+        print("unit_clauses", unit_clauses)
 
-                        unit_clauses = total_new_unit_clauses
-                        # eerder checken of er al empty clauses zijn dan kan je uit deze loop
+        # keep doing unit propagation till no unit_clauses are left
+        while len(unit_clauses) != 0: 
+            empty = False
+            total_new_unit_clauses = []
+            print("unit_clauses_list", unit_clauses)
+            print("longer clauses", clauses)
+    
+            for c in unit_clauses:
+                print("FIRST", c)
+                clauses, empty, new_unit_clauses = self.unit_propagation(c, set_variables, clauses)# shorten works, does empty work?s
+                print("shorter_list", clauses)
+                print("new_unit_clauses", new_unit_clauses)
+                if empty == True:
+                    return False
+            
+                for new_unit_clause in new_unit_clauses:
+                    total_new_unit_clauses.append(new_unit_clause)
+            unit_clauses = total_new_unit_clauses
+                    # eerder checken of er al empty clauses zijn dan kan je uit deze loop
 
-            # check for empty clause
-            if empty == True: 
-                return False
+
+            # # check for empty clause
+            # if empty == True: 
+            #     return False
                 
             # check for empty set of clauses 
             if len(clauses) == 0:
+                print(set_variables)
                 return True
+        
+        
         
                     
            
