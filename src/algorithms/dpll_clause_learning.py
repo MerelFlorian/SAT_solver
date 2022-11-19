@@ -1,7 +1,8 @@
-# Implements a basic algorithm that loops through all variables in SAT and tries all combinations of boolean values
-
+# Implements DPLL with clause learning
 # imports
 import copy
+from ..classes.Node import Node
+from ..classes.Dependency_graph import Dependency 
 
 class DPLL:
     """
@@ -158,6 +159,9 @@ class DPLL:
                 variable = "-" + variable
             else:
                 set_variables[variable] = True
+            
+            # add literal to dependency graph
+            Graph = Dependency(Node(variable))
         else:
             variable = None
 
@@ -190,6 +194,9 @@ class DPLL:
                 unit_clauses.append(clause)
         clauses = new_clauses
 
+        # add first unit clauses to dependency graph
+        (Node.literal(variable).add_next(unit_clause) for unit_clause in unit_clauses)
+
         # keep doing unit propagation till no unit_clauses are left
         while len(unit_clauses) != 0: 
             empty = False
@@ -200,6 +207,11 @@ class DPLL:
                 clauses, empty, new_unit_clauses = self.unit_propagation(c, set_variables, clauses)# shorten works, does empty work?s
                 # remove literal from remaining
                 remaining.remove(c[0].replace("-", ""))
+
+                # add nodes to dependency graph
+                if variable != None:
+                    (Node.literal(variable).add_next(new_unit_clause[0]) for new_unit_clause in new_unit_clauses)
+                    print(Graph.independent_nodes())
 
                 # backtrack if empty clause
                 if empty == True:
@@ -217,9 +229,8 @@ class DPLL:
                     if in_new_unit_clauses == False:
                         total_new_unit_clauses.append(new_unit_clause)
             unit_clauses = total_new_unit_clauses
-        print("out of unit clauses")
 
-        # return True If empty clauses
+        # return True
         if len(clauses) == 0:
             print(set_variables)
             print(len(set_variables))
@@ -263,17 +274,4 @@ class DPLL:
         
 
             
-
-
-
-
-
-
-
-
-        
-                
-
-            
-        
 

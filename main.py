@@ -1,6 +1,6 @@
 # imports
-from src.algorithms.dpll import DPLL
-from src.game.SAT import SAT
+from src.algorithms.dpll_clause_learning import DPLL
+from src.classes.SAT import SAT
 import time
 
 if __name__ == "__main__":
