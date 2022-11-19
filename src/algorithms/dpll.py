@@ -66,17 +66,19 @@ class DPLL:
 
         # remove  or shorten clause from clauses
         opposite = self.opposite(unit_clause[0])
-
-        empty = False
         new_unit_clauses = [] # lijst kan 2x dezelfde waarde hebben
         new_clauses = copy.deepcopy(clauses)
         removed_clauses = 0
+        empty = False
         for clause, i in zip(clauses, range(0, len(clauses))):
             for variable in clause:
                 if opposite == variable:  # somehow finds 2x 273 as new unit clause 
                     # shorten clause
                     new_clause, empty, new = self.shorten_clause(unit_clause[0], clause) # shortening works, does empty work?
                     new_clauses[i - removed_clauses] = new_clause
+
+                    if empty == True:
+                        return new_clauses, empty, new_unit_clauses
 
                     if new == True:
                         if new_clause not in new_unit_clauses: 
@@ -146,6 +148,7 @@ class DPLL:
         unit_clauses = []
         new_clauses = copy.deepcopy(clauses)
         remaining = copy.deepcopy(variables)
+        removed = 0
 
         # set variable to true or false if not first run
         if split is not False: 
@@ -159,6 +162,7 @@ class DPLL:
             variable = None
 
         print("variable", variable)
+        print(split, value)
 
         for clause, i in zip(clauses, range(0, len(clauses))):
             for literal in clause:
@@ -168,21 +172,23 @@ class DPLL:
 
                     # remove clause 
                     if variable == literal:
-                        clauses.remove(clause)
+                        new_clauses.remove(clause)
+                        removed += 1
                         continue
                     elif variable == self.opposite(literal):
                         # shorten clause
                         new_clause, empty, unit_clause = self.shorten_clause(variable, clause)
-                        clauses[i] = new_clause
+                        new_clauses[i - removed] = new_clause
                         if unit_clause == True and clause not in unit_clauses:
                             unit_clauses.append(clause)
-                    # backtrack if empty clause 
-                    if empty == True:
-                        return False
-                
+                        # backtrack if empty clause 
+                        if empty == True:
+                            return False
+
             # add unit clauses to list to use later in unit propagation
             if self.unit_clause(clause) and clause not in unit_clauses:
                 unit_clauses.append(clause)
+        clauses = new_clauses
 
         # keep doing unit propagation till no unit_clauses are left
         while len(unit_clauses) != 0: 
@@ -198,54 +204,51 @@ class DPLL:
                 # backtrack if empty clause
                 if empty == True:
                     return False
-                
                 # update unit_clauses
                 for new_unit_clause in new_unit_clauses:
-                    if new_unit_clause not in total_new_unit_clauses:
+                    in_new_unit_clauses = False
+                    for lit in new_unit_clause:
+                        for var in total_new_unit_clauses:
+                            opposite = self.opposite(lit)
+                            if lit in var or opposite in var:
+                                in_new_unit_clauses = True
+                        else:
+                            continue
+                    if in_new_unit_clauses == False:
                         total_new_unit_clauses.append(new_unit_clause)
             unit_clauses = total_new_unit_clauses
+        print("out of unit clauses")
+            
         
+
+        # Handle pure literals until no pure literals are left
         no_pure_literals = False
         new_clauses = copy.deepcopy(clauses)
 
-        # Handle pure literals untill no pure literals are left
         while no_pure_literals != True:
             
             # find pure literals
-            pure_literals = []
-
-            for lit in variables:
+            for lit, i in zip(remaining, range(0, len(remaining))):
                 pure_lit, boolean = self.pure_lit(lit, clauses)
                 if boolean:
-                    if pure_lit:
-                        pure_literals.append(lit)
-                    else: 
-                        pure_literals.append("-"+lit)
-                else:
-                    continue
-            print(pure_literals)
-
-            # handle pure literals
-            for pure in pure_literals:
-                for clause in clauses:
-                    if pure in clause:
-                        new_clauses.remove(clause)
-                print(pure)
-                print(remaining)
-                remaining.remove(pure.replace("-", ""))
-                if len(clauses) == 0:
-                    return True
-            clauses = new_clauses
-
-            # stop pure literal handling when no pure literals found    
-            if len(pure_literals) == 0:
-                no_pure_literals = True
-        
-        print("OUT OF PURE LITERALS")
+                    if not pure_lit:
+                        pure = "-" + lit
+                    else:
+                        pure = lit
+                    remaining.remove(pure.replace("-", ""))
+                    # handle pure lit
+                    for clause in clauses:
+                        if pure in clause:
+                            new_clauses.remove(clause)
+                elif boolean == False and i == len(remaining) - 1:
+                    no_pure_literals = True
+                clauses = new_clauses
+                        
                 
         # check for empty set of clauses 
         if len(clauses) == 0:
             print(set_variables)
+            print(len(set_variables))
             return True
         
         run += 1
