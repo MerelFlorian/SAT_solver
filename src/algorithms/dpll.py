@@ -235,7 +235,9 @@ class DPLL:
                         pure = "-" + lit
                     else:
                         pure = lit
+                        set_variables[pure] = True
                     remaining.remove(pure.replace("-", ""))
+                    
                     # handle pure lit
                     for clause in clauses:
                         if pure in clause:
