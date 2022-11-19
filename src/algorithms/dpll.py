@@ -11,13 +11,14 @@ class DPLL:
         self.SAT = SAT
         self.split = False
 
-    def pure_lit(self, variable, clauses):
+    def pure_lit(self, variable: str, clauses: list) -> bool: 
         """
         Counts number of times a variable is present in all clauses (either with negation sign or without).
         Returns True if pure literal.
         Returns False if not pure literal.
         """
-        
+        neg = 0
+        pos = 0
         # count amount of positive and negative instances of variable in clauses s
         for clause in clauses:
             for literal in clause: 
@@ -28,13 +29,15 @@ class DPLL:
                 else:
                     continue
                 if neg > 0 and pos > 0:
-                    return False
-        if neg > 0 or pos > 0:
-            return True
-
-        
+                    return False, False
+        if neg > 0 and pos == 0:
+            return False, True
+        elif pos > 0 and neg == 0:
+            return True, True
+        else:
+            return False, False
     
-    def opposite(self, literal):
+    def opposite(self, literal: str) -> str:
         """
         Returns opposite of literal (111-> -111)
         """
@@ -44,8 +47,7 @@ class DPLL:
             opposite = "-" + literal
         return opposite
 
-
-    def unit_clause(self, clause):
+    def unit_clause(self, clause: list) -> bool:
         """
         Returns true if clause is unit clause
         """
@@ -54,7 +56,7 @@ class DPLL:
         else: 
             return False
     
-    def unit_propagation(self, unit_clause, set_variables, clauses):
+    def unit_propagation(self, unit_clause: list, set_variables: dict, clauses: list):
         """
         Sets unit clause to appropriate boolean and rm from unset variables
         """
@@ -69,11 +71,9 @@ class DPLL:
         new_unit_clauses = [] # lijst kan 2x dezelfde waarde hebben
         new_clauses = copy.deepcopy(clauses)
         removed_clauses = 0
-        
         for clause, i in zip(clauses, range(0, len(clauses))):
-            
             for variable in clause:
-                if opposite == variable:  # somehow it does not do all clauses (does not find all matches)
+                if opposite == variable:  # somehow finds 2x 273 as new unit clause 
                     # shorten clause
                     new_clause, empty, new = self.shorten_clause(unit_clause[0], clause) # shortening works, does empty work?
                     new_clauses[i - removed_clauses] = new_clause
@@ -85,10 +85,9 @@ class DPLL:
                 elif unit_clause[0] == variable:
                     removed_clauses += 1
                     new_clauses.remove(clause)
-
         return new_clauses, empty, new_unit_clauses
 
-    def empty_set_clauses(self, clauses):
+    def empty_set_clauses(self, clauses: list) -> bool:
         """ 
         Checks for empty (sets of) clauses, returns true if so.
         """
@@ -97,7 +96,7 @@ class DPLL:
         else:
             return False
 
-    def empty_clause(self, clause):
+    def empty_clause(self, clause: list) -> bool:
         """
         Returns True if clause is empty
         """
@@ -106,7 +105,7 @@ class DPLL:
         else: 
             return False
     
-    def tautology(self, clause, literal):
+    def tautology(self, clause: list, literal: str) -> bool:
         """
         Returns True if clause contains tautology
         """
@@ -115,16 +114,11 @@ class DPLL:
         else:
             return False
     
-    def pure_lit_assign(self, literal, boolean, set_variables, variables):
+    def shorten_clause(self, literal: str, clause: list):
         """
-        Assigns boolean to pure literal and removes from variables list.
+        Makes a clause shorter, removing one literal from it.
         """
-        set_variables[literal] = boolean
-        variables.remove(literal.replace("-", ""))
 
-        return 
-    
-    def shorten_clause(self, literal, clause):
         new_clause = copy.deepcopy(clause)
         unit_clause = False
         empty = False
@@ -140,10 +134,8 @@ class DPLL:
             unit_clause = True
 
         return new_clause, empty, unit_clause
-    
-    
 
-    def run(self, variables, clauses, set_variables, split, value, run):
+    def run(self, variables:list, clauses: list, set_variables: dict, split: bool, value: bool, run: int) -> bool:
         """
         Runs DPLL algorithm by systematically checking all values for literals, with backtracking.
         Input: variables(list), clauses(list), set_variables(dict), split(Bool), value(Bool)
@@ -153,10 +145,12 @@ class DPLL:
         empty = False
         unit_clauses = []
         new_clauses = copy.deepcopy(clauses)
+        remaining = copy.deepcopy(variables)
 
         # set variable to true or false if not first run
         if split is not False: 
             variable = variables.pop()
+            remaining.remove(variable)
             if value == False:
                 variable = "-" + variable
             else:
@@ -164,17 +158,13 @@ class DPLL:
         else:
             variable = None
 
-        # print("variable = ", variable)
-        # print("split, value = ", split, value)
+        print("variable", variable)
 
-        # unit propagation while unit literal present in KB
         for clause, i in zip(clauses, range(0, len(clauses))):
             for literal in clause:
             
-                # if variable is chosen
+                # if variable is chosen make new set of clauses removing/shortening clauses with variable
                 if variable != None:
-
-                    # make new set of clauses with lit value\
 
                     # remove clause 
                     if variable == literal:
@@ -186,6 +176,7 @@ class DPLL:
                         clauses[i] = new_clause
                         if unit_clause == True and clause not in unit_clauses:
                             unit_clauses.append(clause)
+                    # backtrack if empty clause 
                     if empty == True:
                         return False
                 
@@ -197,54 +188,65 @@ class DPLL:
         while len(unit_clauses) != 0: 
             empty = False
             total_new_unit_clauses = []
-    
+            
+            # unit propagation
             for c in unit_clauses:
                 clauses, empty, new_unit_clauses = self.unit_propagation(c, set_variables, clauses)# shorten works, does empty work?s
+                # remove literal from remaining
+                remaining.remove(c[0].replace("-", ""))
+
+                # backtrack if empty clause
                 if empty == True:
                     return False
-            
+                
+                # update unit_clauses
                 for new_unit_clause in new_unit_clauses:
-                    total_new_unit_clauses.append(new_unit_clause)
+                    if new_unit_clause not in total_new_unit_clauses:
+                        total_new_unit_clauses.append(new_unit_clause)
             unit_clauses = total_new_unit_clauses
         
+        no_pure_literals = False
+        new_clauses = copy.deepcopy(clauses)
+
         # Handle pure literals untill no pure literals are left
-        pure_literals = []
-        while len(pure_literals) != 0:
-            print(pure_literals)
+        while no_pure_literals != True:
             
             # find pure literals
-            new_pure_literals = []
+            pure_literals = []
 
-            for variable in variables:
-                if self.pure_lit(variable):
-                    new_pure_literals.append(variable)
+            for lit in variables:
+                pure_lit, boolean = self.pure_lit(lit, clauses)
+                if boolean:
+                    if pure_lit:
+                        pure_literals.append(lit)
+                    else: 
+                        pure_literals.append("-"+lit)
                 else:
                     continue
-            
-            # reset pure literals
-            pure_literals = new_pure_literals
+            print(pure_literals)
 
             # handle pure literals
             for pure in pure_literals:
                 for clause in clauses:
-                    for literal in clause:
-                        if pure in literal and "-" in literal:
-                            clauses.remove(clause)
-                        elif pure in literal and "-" not in literal:
-                            set_variables[literal] = True
-                            clauses.remove(clause)
+                    if pure in clause:
+                        new_clauses.remove(clause)
+                print(pure)
+                print(remaining)
+                remaining.remove(pure.replace("-", ""))
                 if len(clauses) == 0:
                     return True
-                variables.pop(pure)
+            clauses = new_clauses
+
+            # stop pure literal handling when no pure literals found    
+            if len(pure_literals) == 0:
+                no_pure_literals = True
+        
+        print("OUT OF PURE LITERALS")
                 
         # check for empty set of clauses 
         if len(clauses) == 0:
             print(set_variables)
             return True
-        
-        
-        
-                    
         
         run += 1
         return self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False, run) or  self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True, run)

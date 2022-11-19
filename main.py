@@ -4,7 +4,7 @@ from src.game.SAT import SAT
 import time
 
 if __name__ == "__main__":
-    sat = SAT("/home/m_rosa/SAT/SAT_solver/resources/sudoku1.cnf")
+    sat = SAT("/home/m_rosa/SAT/SAT_solver/resources/sudoku2 (1).cnf")
     sat.input()
 
     start = time.time()
