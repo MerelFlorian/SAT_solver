@@ -219,7 +219,6 @@ class DPLL:
             unit_clauses = total_new_unit_clauses
         print("out of unit clauses")
             
-        
 
         # Handle pure literals until no pure literals are left
         no_pure_literals = False
