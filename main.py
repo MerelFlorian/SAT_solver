@@ -19,7 +19,7 @@ if __name__ == "__main__":
         print("sudoku = ", file)
         if counter % 50 == 0: 
             print(counter, "ARE COMPLETED OUT OF 1011")
-        sat = SAT("/home/m_rosa/SAT/SAT_solver/resources/sudokus_extra/" + file)
+        sat = SAT(dir + file)
         sat.input()
         dpll_sud = DPLL(sat)
         bool, count =  dpll_sud.run(sat.variables, sat.clauses, sat.set_variables, False, None, HEURISTIC, 2)
