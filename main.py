@@ -6,7 +6,7 @@ import os
 
 if __name__ == "__main__":
 
-    HEURISTIC = "MOM"
+    HEURISTIC = "JW"
 
     line = []
     start = time.time()
@@ -21,9 +21,10 @@ if __name__ == "__main__":
         # save stats file 
         line.append(str(count))
 
-    with open('stats/stats.txt', 'w') as f:
-        f.write(HEURISTIC + ", ")     
+    with open('stats/results/stats.txt', 'w') as f:
+        f.write(HEURISTIC + " ")     
         for item in line:
-            f.write(item + ", ")
+            f.write(item + " ")
+    f.close()
 
     print(time.time() - start)

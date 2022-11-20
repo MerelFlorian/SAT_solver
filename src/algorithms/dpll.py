@@ -129,7 +129,6 @@ class DPLL:
         """
         Makes a clause shorter, removing one literal from it.
         """
-
         new_clause = copy.deepcopy(clause)
         unit_clause = False
         empty = False
@@ -169,7 +168,7 @@ class DPLL:
                     count_pos += 1
                 elif literal == self.opposite(variable):
                     count_neg += 1
-        score = ((count_pos + count_neg) * (2**parameter)) + (count_pos * count_neg)
+        score = (count_pos + count_neg) * (2**parameter) + (count_pos * count_neg)
 
         return score
     
@@ -206,7 +205,8 @@ class DPLL:
             # calculte score for every variable and put in dict[score] = variable
             score = 0
             for len_clause, occurence_var in  dict.items():
-                score = score + (occurence_var * (2**-len_clause))
+                score = score + (float(occurence_var) * (2**-float(len_clause)))
+                print(score)
                 if score > max:
                     max = score
                     var_max = variable
