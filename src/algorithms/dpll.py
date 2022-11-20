@@ -2,6 +2,7 @@
 
 # imports
 import copy
+from collections import defaultdict
 
 class DPLL:
     """
@@ -82,7 +83,6 @@ class DPLL:
 
                     if new == True:
                         if new_clause not in new_unit_clauses: 
-                            print("(new_clause)",new_clause)
                             new_unit_clauses.append(new_clause)
                     
                 elif unit_clause[0] == variable:
@@ -183,6 +183,27 @@ class DPLL:
                 continue
 
         return max_var
+    
+    def JW(self, variables: list, clauses: list):
+        max = 0
+        for variable in variables:
+            dict = {}
+        # count number of occurences of every variable and save in dict with clause length
+            for clause in clauses: 
+                if variable in clause or self.opposite(variable) in clause:  
+                    if len(clause) not in dict.keys():
+                        dict[len(clause)] = 0
+                    dict[len(clause)] += 1
+            
+            # calculte score for every variable and put in dict[score] = variable\
+            score = 0
+            for len_clause, occurence_var in  dict.items():
+                score = score + (occurence_var * (2**-len_clause))
+                if score > max:
+                    max = score
+                    var_max = variable
+        # get max score variable and return 
+        return var_max
 
     def run(self, variables:list, clauses: list, set_variables: dict, split: bool, value: bool, run: int, heuristic: str, par: float) -> bool:
         """
@@ -197,19 +218,17 @@ class DPLL:
         remaining = copy.deepcopy(variables)
         removed = 0
 
-
         # set variable to true or false if not first run
         if split is not False: 
             if heuristic == "MOM":
                 variable = self.mom_heuristic(variables, clauses, par)
                 variables.remove(variable)
-                print(variables)
-                remaining.remove(variable)
-            elif heuristic == "Wang":
-                pass
+            elif heuristic == "JW":
+                variable = self.JW(variables, clauses)
+                variables.remove(variable)
             else:
                 variable = variables.pop()
-                remaining.remove(variable)
+            remaining.remove(variable)
             
             # set variable to True or False
             if value == False:
@@ -218,10 +237,6 @@ class DPLL:
                 set_variables[variable] = True
         else:
             variable = None
-
-        print("variable", variable)
-        print(split, value)
-
 
         for clause, i in zip(clauses, range(0, len(clauses))):
             for literal in clause:
@@ -243,7 +258,6 @@ class DPLL:
                             return False
                         if unit_clause == True and new_clause not in unit_clauses:
                             unit_clauses.append(new_clause)
-                            print("added", unit_clauses)
 
             # add unit clauses to list to use later in unit propagation
             if self.unit_clause(clause) and clause not in unit_clauses:
@@ -256,12 +270,10 @@ class DPLL:
             empty = False
             total_new_unit_clauses = []
             
-            print("list_unit", unit_clauses)
             # unit propagation
             for c in unit_clauses:
                 clauses, empty, new_unit_clauses = self.unit_propagation(c, set_variables, clauses)# shorten works, does empty work?s
                 # remove literal from remaining
-                print("all_unit", c[0])
                 remaining.remove(c[0].replace("-", ""))
 
                 # backtrack if empty clause
@@ -280,7 +292,6 @@ class DPLL:
                     if in_new_unit_clauses == False:
                         total_new_unit_clauses.append(new_unit_clause)
             unit_clauses = total_new_unit_clauses
-        print("out of unit clauses")
 
         # return True If empty clauses
         if len(clauses) == 0:
