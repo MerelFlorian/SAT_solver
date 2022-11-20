@@ -1,4 +1,7 @@
-# Implements a basic algorithm that loops through all variables in SAT and tries all combinations of boolean values
+# Implements a basic DPLL algorithm 
+# Merel Florian
+# Knowledge Representation 2022
+# Msc Artificial Intelligence 
 
 # imports
 import copy
@@ -6,17 +9,19 @@ from collections import defaultdict
 
 class DPLL:
     """
-    Basic SAT solver using DPLL 
+    Basic SAT solver using DPLL
+    Option to use Moms heurstic and Jeroslow-Wang two-sided heuristic. 
     """
     def __init__(self, SAT):
         self.SAT = SAT
         self.split = False
+        self.split_count = 0
 
     def pure_lit(self, variable: str, clauses: list) -> bool: 
         """
         Counts number of times a variable is present in all clauses (either with negation sign or without).
-        Returns True if pure literal.
-        Returns False if not pure literal.
+        Returns True if pure literal and True if the pure literal is positive.
+        Returns False if not pure literal and False if pure literal is negative.
         """
         neg = 0
         pos = 0
@@ -59,32 +64,35 @@ class DPLL:
     
     def unit_propagation(self, unit_clause: list, set_variables: dict, clauses: list):
         """
-        Sets unit clause to appropriate boolean and rm from unset variables
+        Sets unit clause to appropriate boolean and rm from unset variables.
+        Returns new unit clauses and returns True if new unit clauses were found.
+        Returns True for empty, if clause if empty after shortening.
         """
         # sets variable to True or False
         if "-" not in unit_clause[0]: 
             set_variables[unit_clause[0]] = True
 
-        # remove  or shorten clause from clauses
         opposite = self.opposite(unit_clause[0])
         new_unit_clauses = [] # lijst kan 2x dezelfde waarde hebben
         new_clauses = copy.deepcopy(clauses)
         removed_clauses = 0
         empty = False
+
+         # remove  or shorten clause from clauses
         for clause, i in zip(clauses, range(0, len(clauses))):
             for variable in clause:
                 if opposite == variable:  # somehow finds 2x 273 as new unit clause 
                     # shorten clause
                     new_clause, empty, new = self.shorten_clause(unit_clause[0], clause) # shortening works, does empty work?
                     new_clauses[i - removed_clauses] = new_clause
-
+                    # return empty as True, if clause is empty
                     if empty == True:
                         return new_clauses, empty, new_unit_clauses
-
+                    # return new as True if new unit_clause was found
                     if new == True:
                         if new_clause not in new_unit_clauses: 
-                            new_unit_clauses.append(new_clause)
-                    
+                            new_unit_clauses.append(new_clause)    
+                # add new unit clause to list and return this list
                 elif unit_clause[0] == variable:
                     removed_clauses += 1
                     new_clauses.remove(clause)
@@ -195,7 +203,7 @@ class DPLL:
                         dict[len(clause)] = 0
                     dict[len(clause)] += 1
             
-            # calculte score for every variable and put in dict[score] = variable\
+            # calculte score for every variable and put in dict[score] = variable
             score = 0
             for len_clause, occurence_var in  dict.items():
                 score = score + (occurence_var * (2**-len_clause))
@@ -205,7 +213,7 @@ class DPLL:
         # get max score variable and return 
         return var_max
 
-    def run(self, variables:list, clauses: list, set_variables: dict, split: bool, value: bool, run: int, heuristic: str, par: float) -> bool:
+    def run(self, variables:list, clauses: list, set_variables: dict, split: bool, value: bool, heuristic: str, par: float) -> bool:
         """
         Runs DPLL algorithm by systematically checking all values for literals, with backtracking.
         Input: variables(list), clauses(list), set_variables(dict), split(Bool), value(Bool)
@@ -217,9 +225,11 @@ class DPLL:
         new_clauses = copy.deepcopy(clauses)
         remaining = copy.deepcopy(variables)
         removed = 0
+        self.split_count += 1
 
         # set variable to true or false if not first run
         if split is not False: 
+
             if heuristic == "MOM":
                 variable = self.mom_heuristic(variables, clauses, par)
                 variables.remove(variable)
@@ -235,8 +245,11 @@ class DPLL:
                 variable = "-" + variable
             else:
                 set_variables[variable] = True
+
         else:
             variable = None
+
+        print(variable, self.split_count)
 
         for clause, i in zip(clauses, range(0, len(clauses))):
             for literal in clause:
@@ -294,10 +307,11 @@ class DPLL:
             unit_clauses = total_new_unit_clauses
 
         # return True If empty clauses
-        if len(clauses) == 0:
+        if self.empty_set_clauses(clauses):
+            print("Amount of splits", self.split_count)
             print("set_variables", set_variables)
             print(len(set_variables))
-            return True
+            return True, self.split_count
             
         # Handle pure literals until no pure literals are left
         no_pure_literals = False
@@ -325,13 +339,13 @@ class DPLL:
                 clauses = new_clauses
                            
         # check for empty set of clauses 
-        if len(clauses) == 0:
+        if self.empty_set_clauses(clauses):
+            print("Amount of splits", self.split_count)
             print(set_variables)
             print(len(set_variables))
-            return True
+            return True, self.split_count
         
-        run += 1
-        return self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False, run, heuristic, par) or  self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True, run, heuristic, par)
+        return self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False, heuristic, par) or  self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True, heuristic, par)
         
 
             
