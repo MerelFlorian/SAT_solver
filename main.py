@@ -1,5 +1,5 @@
 # imports
-from src.algorithms.dpll_clause_learning import DPLL
+from src.algorithms.dpll import DPLL
 from src.classes.SAT import SAT
 import time
 
@@ -9,5 +9,5 @@ if __name__ == "__main__":
 
     start = time.time()
     dpll_sud = DPLL(sat)
-    print(dpll_sud.run(sat.variables, sat.clauses, sat.set_variables, False, None, 0))
+    print(dpll_sud.run(sat.variables, sat.clauses, sat.set_variables, False, None, 0, "MOM", 2))
     print(time.time() - start)

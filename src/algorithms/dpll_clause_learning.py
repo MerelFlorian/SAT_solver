@@ -64,6 +64,20 @@ class DPLL:
         # sets variable to True or False
         if "-" not in unit_clause[0]: 
             set_variables[unit_clause[0]] = True
+            bool = True
+
+        else:
+            bool = False
+
+        # # put in dependency graph
+        # for clause in clauses:
+        #     if unit_clause[0] in clause:
+        #         for lit in clause:
+        #             if lit != unit_clause:
+        #                 Node.literal(unit_clause[0]).add_next(lit, bool)
+        # print("UNIT_NEXT0)", Node.literal(unit_clause[0]).next_0)
+        # print("(UNIT_NEXT1)", Node.literal(unit_clause[0]).next_1)
+            
 
         # remove  or shorten clause from clauses
         opposite = self.opposite(unit_clause[0])
@@ -138,7 +152,7 @@ class DPLL:
 
         return new_clause, empty, unit_clause
 
-    def run(self, variables:list, clauses: list, set_variables: dict, split: bool, value: bool, run: int) -> bool:
+    def run(self, graph, variables:list, clauses: list, set_variables: dict, split: bool, value: bool, run: int) -> bool:
         """
         Runs DPLL algorithm by systematically checking all values for literals, with backtracking.
         Input: variables(list), clauses(list), set_variables(dict), split(Bool), value(Bool)
@@ -151,22 +165,40 @@ class DPLL:
         remaining = copy.deepcopy(variables)
         removed = 0
 
+
         # set variable to true or false if not first run
         if split is not False: 
             variable = variables.pop()
             remaining.remove(variable)
             if value == False:
                 variable = "-" + variable
+            
             else:
                 set_variables[variable] = True
             
-            # add literal to dependency graph
-            Graph = Dependency(Node(variable))
         else:
+            # set variable to None
             variable = None
 
         print("variable", variable)
         print(split, value)
+        print("independent nodes", graph.nodes)
+        
+        # make dependency graph
+        if variable != None:
+            # add literal to dependency graph
+            variable_node = Node(variable)
+            graph.add_independent_node(variable_node)
+            graph.add_node_name(variable_node)
+
+            print()
+
+            # add all literals that are dependent of variable to linked list 
+            for clause in clauses:
+                if variable in clause:
+                    for lit in clause:
+                        variable_node.add_next(Node(lit), split)
+            print(graph.node_names)
 
         for clause, i in zip(clauses, range(0, len(clauses))):
             for literal in clause:
@@ -193,9 +225,11 @@ class DPLL:
             if self.unit_clause(clause) and clause not in unit_clauses:
                 unit_clauses.append(clause)
         clauses = new_clauses
+        
+        if variable != 0:
+            # add first unit clauses to dependency graph
+            (Node.literal(variable).add_next(unit_clause) for unit_clause in unit_clauses)
 
-        # add first unit clauses to dependency graph
-        (Node.literal(variable).add_next(unit_clause) for unit_clause in unit_clauses)
 
         # keep doing unit propagation till no unit_clauses are left
         while len(unit_clauses) != 0: 
@@ -207,11 +241,6 @@ class DPLL:
                 clauses, empty, new_unit_clauses = self.unit_propagation(c, set_variables, clauses)# shorten works, does empty work?s
                 # remove literal from remaining
                 remaining.remove(c[0].replace("-", ""))
-
-                # add nodes to dependency graph
-                if variable != None:
-                    (Node.literal(variable).add_next(new_unit_clause[0]) for new_unit_clause in new_unit_clauses)
-                    print(Graph.independent_nodes())
 
                 # backtrack if empty clause
                 if empty == True:
@@ -270,7 +299,7 @@ class DPLL:
             return True
         
         run += 1
-        return self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False, run) or  self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True, run)
+        return self.run(copy.deepcopy(graph), copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False, run) or  self.run(copy.deepcopy(graph), copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True, run)
         
 
             
