@@ -206,14 +206,13 @@ class DPLL:
             score = 0
             for len_clause, occurence_var in  dict.items():
                 score = score + (float(occurence_var) * (2**-float(len_clause)))
-                print(score)
                 if score > max:
                     max = score
                     var_max = variable
         # get max score variable and return 
         return var_max
 
-    def run(self, variables:list, clauses: list, set_variables: dict, split: bool, value: bool, heuristic: str, par: float) -> bool:
+    def run(self, variables:list, clauses: list, set_variables: dict, split: bool, value: bool, heuristic: str, par=2) -> bool:
         """
         Runs DPLL algorithm by systematically checking all values for literals, with backtracking.
         Input: variables(list), clauses(list), set_variables(dict), split(Bool), value(Bool)
@@ -229,7 +228,6 @@ class DPLL:
 
         # set variable to true or false if not first run
         if split is not False: 
-
             if heuristic == "MOM":
                 variable = self.mom_heuristic(variables, clauses, par)
                 variables.remove(variable)
@@ -248,8 +246,6 @@ class DPLL:
 
         else:
             variable = None
-
-        print(variable, self.split_count)
 
         for clause, i in zip(clauses, range(0, len(clauses))):
             for literal in clause:
@@ -305,12 +301,11 @@ class DPLL:
                     if in_new_unit_clauses == False:
                         total_new_unit_clauses.append(new_unit_clause)
             unit_clauses = total_new_unit_clauses
-
+        variables = remaining
         # return True If empty clauses
         if self.empty_set_clauses(clauses):
             print("Amount of splits", self.split_count)
-            print("set_variables", set_variables)
-            print(len(set_variables))
+            print("len solution", len(set_variables))
             return True, self.split_count
             
         # Handle pure literals until no pure literals are left
@@ -341,8 +336,7 @@ class DPLL:
         # check for empty set of clauses 
         if self.empty_set_clauses(clauses):
             print("Amount of splits", self.split_count)
-            print(set_variables)
-            print(len(set_variables))
+            print("len solution", len(set_variables))
             return True, self.split_count
         
         return self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False, heuristic, par) or  self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True, heuristic, par)
