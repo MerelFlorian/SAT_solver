@@ -6,27 +6,35 @@ import os
 
 if __name__ == "__main__":
 
-    HEURISTIC = "NONE"
-    dir = "/home/m_rosa/SAT/SAT_solver/resources/sudokus_extra/"
+    HEURISTIC = "DPLL"
+    dir = "/home/m_rosa/SAT/SAT_solver/resources/sudokus/"
+    PARAMETER = 2
 
     line = []
     start = time.time()
     counter = 0
         
-    # run algorithm for all sudoku's
-    for file in os.listdir(dir):
-        counter += 1
-        print("sudoku = ", file)
-        if counter % 50 == 0: 
-            print(counter, "ARE COMPLETED OUT OF 1011")
-        sat = SAT(dir + file)
-        sat.input()
-        dpll_sud = DPLL(sat)
-        bool, count =  dpll_sud.run(sat.variables, sat.clauses, sat.set_variables, False, None, HEURISTIC, 2)
+    # # run algorithm for all sudoku's
+    # for file in os.listdir(dir):
+    #     counter += 1
+    #     print("sudoku = ", file)
+    #     if counter % 50 == 0: 
+    #         print(counter, "ARE COMPLETED OUT OF 1011")
+    #     sat = SAT(dir + file)
+    #     sat.input()
+    #     dpll_sud = DPLL(sat)
+    #     bool, count =  dpll_sud.run(sat.variables, sat.clauses, sat.set_variables, False, None, HEURISTIC, 2)
     
         
-        line.append(str(count))
-   
+    #     line.append(str(count))
+
+    file = "3_sudoku.cnf"
+    print("sudoku = ", file)
+    sat = SAT(dir + file)
+    sat.input()
+    dpll_sud = DPLL(sat)
+    bool, count =  dpll_sud.run(sat.variables, sat.clauses, sat.set_variables, False, None, HEURISTIC, PARAMETER)
+
     # save stats file  
 
     with open('stats/results/stats.txt', 'w') as f:

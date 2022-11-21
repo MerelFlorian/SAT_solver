@@ -24,8 +24,6 @@ class SAT:
             info = lines[0].split(" ") 
             self.size = int([*info[2]][0])
             self.number_variables = self.size**2
-        
-        print(self.size)
 
         # make variables dict
         for row in range (1, self.size + 1, 1):

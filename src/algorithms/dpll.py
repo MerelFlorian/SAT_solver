@@ -224,10 +224,10 @@ class DPLL:
         new_clauses = copy.deepcopy(clauses)
         remaining = copy.deepcopy(variables)
         removed = 0
-        self.split_count += 1
 
         # set variable to true or false if not first run
         if split is not False: 
+            self.split_count += 1
             if heuristic == "MOM":
                 variable = self.mom_heuristic(variables, clauses, par)
                 variables.remove(variable)
