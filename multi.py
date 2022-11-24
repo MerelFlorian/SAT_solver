@@ -19,8 +19,8 @@ def run(heuristic, file):
     return heuristic, count, file
    
 if __name__ == "__main__":
-    START = 1 # Jiseon set this to 250, Ruby set this to 500
-    TOTAL = 9
+    START = 250 # Jiseon set this to 250, Ruby set this to 500
+    TOTAL = 750
     with Pool(processes = cpu_count()) as pool:
         # result = pool.starmap(run, [("DPLL" if i <= TOTAL/3 else "MOM" if i <= TOTAL*2/3 else "JW", i if i <= TOTAL/3 else i - TOTAL//3 if i <= TOTAL*2/3 else i - (TOTAL*2)//3) for i in range(1, TOTAL+1)])
         result = pool.starmap(run, [("DPLL" if i < START + TOTAL/3 else "MOM" if i < START + TOTAL*2/3 else "JW", i if i < START + TOTAL/3 else i - TOTAL//3 if i < START + TOTAL*2/3 else i - (TOTAL*2)//3) for i in range(START, START + TOTAL)])
