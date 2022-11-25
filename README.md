@@ -20,11 +20,11 @@ seaborn==0.12.1
 statannot==0.2.3
 
 ### Usage basic sudoku solver     
-1. Usage: python3 main.py [Sudoku number: (int)][MOM/JW/DPLL] 
+1. Usage: python3 main.py [Sudoku number: (int)] [MOM/JW/DPLL] 
     - example: python3 main.py 1 MOM
 2. open solution.cnf to see DIMACS output file
 
-### Usage stats
+### Usage stats.py
 1. change into directory "stats": cd stats
 2. run "python3 stats.py"
 
