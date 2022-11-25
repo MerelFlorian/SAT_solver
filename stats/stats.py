@@ -6,6 +6,8 @@ import numpy as np
 import seaborn as sns
 from scipy.stats import iqr
 import matplotlib.pyplot as plt
+import scikit_posthocs as sp 
+
 # implements statsistics for KP 2022 - Artificial Intelligence
 
 # read data
@@ -15,7 +17,7 @@ for file in os.listdir("/home/m_rosa/SAT/SAT_solver/stats/results/"):
     file_open = open("/home/m_rosa/SAT/SAT_solver/stats/results/" + file, "r")
 
     d["ID"] = []
-    d["amount of splits"] = []
+    d["amount of splitting"] = []
     d["heuristic"] = []
     # read file
     for line in file_open:
@@ -24,22 +26,27 @@ for file in os.listdir("/home/m_rosa/SAT/SAT_solver/stats/results/"):
         ID = line.strip("\n").split(";")[2]
         # d[line.split(" ")[0]] = list(map(int, value))
         d["ID"].append(ID)
-        d["amount of splits"].append(float(value))
+        d["amount of splitting"].append(float(value))
         d["heuristic"].append(algorithm)
-print(d)
 
 data_panda = pd.DataFrame.from_dict(data = d)
-print(data_panda)
+# # shapiro wilk test
+# print("SHAPIRO\n", pg.normality(data = data_panda, dv= "amount of splitting", group="heuristic", alpha = 0.05))
 
-# repeated measures with sphericity and normal distribution test
-# data_panda = pd.melt(data_panda.reset_index(), id_vars= ["ID"], value_vars= ["MOM", "JW", "DPLL"])
-print(data_panda)
-print("RM ANOVA \n", pg.rm_anova(data = data_panda, dv = "amount of splits",within = "heuristic", subject = "ID", effsize = "np2", detailed = False, correction = 'auto'), "\n")
+# # repeated measures with sphericity and normal distribution test
+# # data_panda = pd.melt(data_panda.reset_index(), id_vars= ["ID"], value_vars= ["MOM", "JW", "DPLL"])
+# print("RM ANOVA \n", pg.rm_anova(data = data_panda, dv = "amount of splitting",within = "heuristic", subject = "ID", effsize = "np2", detailed = False, correction = 'auto'), "\n")
 
-# post hoc
-print("POST HOC \n", pg.pairwise_tests(dv = "amount of splits", within = "heuristic", subject = "ID", data = data_panda))
+# # post hoc parametrical
+# print("POST HOC","\n", pg.pairwise_tests(dv = "amount of splitting", within = "heuristic", subject = "ID", data = data_panda))
 
-# plot
+# Friedman (non parametric)
+print(pg.friedman(data = data_panda, dv = "amount of splitting", within = "heuristic", subject = "ID"))
+
+# post hoc non parametrical
+print(sp.posthoc_conover_friedman(a = data_panda, y_col = "amount of splitting", group_col = "heuristic", block_col= "ID", p_adjust= "fdr_bh", melted = True))
+
+# descriptive data
 # min
 def min(x):
     return x.quantile(0)
@@ -56,18 +63,34 @@ def q75(x):
 def max(x):
     return x.quantile(1)
 
-sns.set()
 
-print("parametric data\n", data_panda.groupby(['heuristic'])['amount of splits'].agg(['mean', 'std']).round(2))
-print("non parametric data\n", data_panda.groupby(['heuristic'])['amount of splits'].agg(['median', iqr, q25, q75, min, max]).round(2))
+# print("parametric data\n", data_panda.groupby(['heuristic'])['amount of splitting'].agg(['mean', 'std']).round(2))
+print("non parametric data\n", data_panda.groupby(['heuristic'])['amount of splitting'].agg(['median', iqr, q25, q75, min, max]).round(2))
 
-plot = sns.pointplot(data=data_panda, x="heuristic", y="amount of splits", errorbar=("pi", 100), capsize=.4, join=True, color="black", estimator = "median")
-sns.swarmplot(x="heuristic", y="amount of splits", data=data_panda, edgecolor="black", linewidth=.9)
-sns.boxplot(data=data_panda, x="heuristic", y="amount of splits", color="gray", saturation=0.05)
+# plotting
+
+sns.set(font_scale = 1)
+# sns.set_palette("OrRd")
+
+# boxplot
+# plot = sns.swarmplot(x="heuristic", y="amount of splitting", data=data_panda, edgecolor="black", linewidth=.9)
+plot = sns.boxplot(data=data_panda, x="heuristic", y="amount of splitting", saturation=0.05, showfliers = True, palette = "dark", orient="v")
+plot.set(yscale = "log")
+
 fig = plot.get_figure()
-fig.suptitle('Amount of splitting to find a solution')
-fig.savefig("stats2.png")
+fig.savefig("boxplot.png")
 
+# lineplot connections between sudokus
+plt.clf()
 df = data_panda
-plot = sns.catplot(kind = "point", data = data_panda, x="heuristic", y="amount of splits", hue = "ID", order = ["DPLL", "MOM", "JW"])
-plt.savefig('output.png')
+sns.set(font_scale = 3)
+plot = sns.catplot(kind = "point", data = data_panda, x="heuristic", y="amount of splitting", hue = "ID", order = ["DPLL", "MOM", "JW"], legend = False, color = "black", height = 15, margin_titles=True, palette = "dark")
+plot.set(yscale="log")
+# plot.set(xticklabels=[])
+plt.grid()
+plt.savefig('connections.png')
+
+# # histogram
+# plt.clf()
+# plot = sns.barplot(data=df, x="heuristic", y = "amount of splitting", color="gray", errorbar="sd")
+# plt.savefig('histogram.png')

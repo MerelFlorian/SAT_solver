@@ -306,7 +306,7 @@ class DPLL:
         if self.empty_set_clauses(clauses):
             print("Amount of splits", self.split_count)
             print("len solution", len(set_variables))
-            return True, self.split_count
+            return True, self.split_count, set_variables
             
         # Handle pure literals until no pure literals are left
         no_pure_literals = False
@@ -337,7 +337,7 @@ class DPLL:
         if self.empty_set_clauses(clauses):
             print("Amount of splits", self.split_count)
             print("len solution", len(set_variables))
-            return True, self.split_count
+            return True, self.split_count, set_variables 
         
         return self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, False, heuristic, par) or  self.run(copy.deepcopy(variables), copy.deepcopy(clauses), copy.deepcopy(set_variables), True, True, heuristic, par)
         

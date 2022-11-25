@@ -3,11 +3,9 @@
 # imports
 from src.algorithms.dpll import DPLL
 from src.classes.SAT import SAT
-import time
 from multiprocessing import Pool, cpu_count
 import csv
 from operator import itemgetter
-
 
 def run(heuristic, file):
     path = f"/home/m_rosa/SAT/SAT_solver/resources/sudokus/{file}_sudoku.cnf"
@@ -19,13 +17,11 @@ def run(heuristic, file):
     return heuristic, count, file
    
 if __name__ == "__main__":
-    START = 250 # Jiseon set this to 250, Ruby set this to 500
+    START = 1 # Jiseon set this to 250, Ruby set this to 500
     TOTAL = 750
     with Pool(processes = cpu_count()) as pool:
-        # result = pool.starmap(run, [("DPLL" if i <= TOTAL/3 else "MOM" if i <= TOTAL*2/3 else "JW", i if i <= TOTAL/3 else i - TOTAL//3 if i <= TOTAL*2/3 else i - (TOTAL*2)//3) for i in range(1, TOTAL+1)])
-        result = pool.starmap(run, [("DPLL" if i < START + TOTAL/3 else "MOM" if i < START + TOTAL*2/3 else "JW", i if i < START + TOTAL/3 else i - TOTAL//3 if i < START + TOTAL*2/3 else i - (TOTAL*2)//3) for i in range(START, START + TOTAL)])
-
-
+        result = pool.starmap(run, [("DPLL" if i <= TOTAL/3 else "MOM" if i <= TOTAL*2/3 else "JW", i if i <= TOTAL/3 else i - TOTAL//3 if i <= TOTAL*2/3 else i - (TOTAL*2)//3) for i in range(1, TOTAL+1)])
+        # result = pool.starmap(run, [("DPLL" if i < START + TOTAL/3 else "MOM" if i < START + TOTAL*2/3 else "JW", i if i < START + TOTAL/3 else i - TOTAL//3 if i < START + TOTAL*2/3 else i - (TOTAL*2)//3) for i in range(START, START + TOTAL)])
 
     result = sorted(result, key=itemgetter(1))
     print(result)
