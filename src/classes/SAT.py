@@ -1,5 +1,5 @@
 # SAT class
-# read input (DIMACS file) and save basic info on SAT problem
+# Reads input (DIMACS file) and save basic info on SAT problem.
 
 class SAT:
     def __init__(self, file):

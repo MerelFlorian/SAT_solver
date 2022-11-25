@@ -1,7 +1,4 @@
-# Implements a basic DPLL algorithm 
-# Merel Florian
-# Knowledge Representation 2022
-# Msc Artificial Intelligence 
+# Implements a basic DPLL algorithm with option of two heuristics: MOM and JW (see README).
 
 # imports
 import copy

@@ -1,3 +1,5 @@
+# main.py implements simple sat solver and writes DIMACS file with output.
+
 # imports
 from src.algorithms.dpll import DPLL
 from src.classes.SAT import SAT

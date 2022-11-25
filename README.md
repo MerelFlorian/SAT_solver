@@ -1,5 +1,6 @@
-# SAT solver 
-## Merel Florian
+# SAT solver - Knowledge representation - MSc Artificial Intelligence - Vrije Universiteit van Amsterdam
+## Implemented by Merel Florian, Jiseon Moon, Ruby Uwadiegwu
+## 25-09-22
 
 ## Purpose
 This program has implemented a SAT solver that can solve any SAT-problem. Heuristics that can be used are Maximum Occurrences in clauses of Minimum Size (MOM) and Jorslow-Wang(JW). Other features include a stats.py file to run statistics based on our results and multi.py to run multiprocessing. To see how to run that basic SAT_solver for one sudoku, see usage.
